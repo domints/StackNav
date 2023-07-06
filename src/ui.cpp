@@ -3,21 +3,55 @@
 #include "ui.hpp"
 #include "storage.hpp"
 #include "arrows.hpp"
+#include "data.hpp"
+
+#include "ui/screen.hpp"
+#include "ui/lineselect.hpp"
 
 uint8_t *bottom_btn;
+UiScreen currentScreen;
 
 void ui_init()
 {
     bottom_btn = storage_loadBmp("/app/gfx/bottom_btn.bmp");
     ui_load_arrows();
+    ui_lineselect_init();
+    currentScreen = UiScreen::Undefined;
+}
+
+void ui_update()
+{
+    UiScreen newScreen = _ui_render(false);
+    while (newScreen != currentScreen)
+    {
+        currentScreen = newScreen;
+        newScreen = _ui_render(true);
+    }
+}
+
+void ui_drawButtons()
+{
     M5.Lcd.drawBitmap(0, 240 - 32, 106, 32, bottom_btn);
     M5.Lcd.drawBitmap(107, 240 - 32, 106, 32, bottom_btn);
     M5.Lcd.drawBitmap(214, 240 - 32, 106, 32, bottom_btn);
-    M5.Lcd.fillRect(0, 0, 320, 40, ARROWS_BG);
-    M5.Lcd.drawBitmap(0, 4, 32, 32, arr_left_uturnleft_dis);
-    M5.Lcd.drawBitmap(32, 4, 32, 32, arr_left_dis);
-    M5.Lcd.drawBitmap(64, 4, 32, 32, arr_through_slightleft);
-    M5.Lcd.drawBitmap(96, 4, 32, 32, arr_through);
-    M5.Lcd.drawBitmap(128, 4, 32, 32, arr_through_right);
-    M5.Lcd.drawBitmap(160, 4, 32, 32, arr_mergeright_dis);
+}
+
+UiScreen _ui_render(bool forceRender)
+{
+    switch (currentScreen)
+    {
+    case UiScreen::LineSelect:
+        return ui_lineselect_render(forceRender);
+
+    default:
+        return UiScreen::LineSelect;
+    }
+}
+
+void drawBitmap(int16_t x, int16_t y, int16_t w, int16_t h, uint8_t* data)
+{
+    if (data == NULL)
+        M5.Lcd.fillRect(x, y, w, h, TFT_MAGENTA);
+    else
+        M5.Lcd.drawBitmap(x, y, w, h, data);
 }

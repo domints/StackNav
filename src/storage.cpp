@@ -1,5 +1,7 @@
 #include <M5Core2.h>
 #include "storage.hpp"
+#include "messagepack.hpp"
+#include "file.hpp"
 
 void storage_verify()
 {
@@ -74,24 +76,6 @@ void storage_list(fs::FS &fs, const char *dirname, uint8_t levels, bool skipHidd
         }
         file = root.openNextFile();
     }
-}
-
-uint16_t file_read16(fs::File &f)
-{
-    uint16_t result;
-    ((uint8_t *)&result)[0] = f.read(); // LSB
-    ((uint8_t *)&result)[1] = f.read(); // MSB
-    return result;
-}
-
-uint32_t file_read32(fs::File &f)
-{
-    uint32_t result;
-    ((uint8_t *)&result)[0] = f.read(); // LSB
-    ((uint8_t *)&result)[1] = f.read();
-    ((uint8_t *)&result)[2] = f.read();
-    ((uint8_t *)&result)[3] = f.read(); // MSB
-    return result;
 }
 
 uint8_t *storage_loadBmp(const char *path)
@@ -189,4 +173,64 @@ uint8_t *storage_loadBmp(const char *path)
     bmpFS.close();
 
     return image_data;
+}
+
+std::tuple<int16_t, LineDesc*> storage_loadLines()
+{
+    File root = SD.open("/lines");
+    if (!root)
+    {
+        log_e("Lines folder does not exist!");
+        return {-1, NULL};
+    }
+    if (!root.isDirectory())
+    {
+        log_e("Lines folder is not a folder!");
+        return {-1, NULL};
+    }
+
+    File file = root.openNextFile();
+    if (!file)
+    {
+        return {0, NULL};
+    }
+
+    uint8_t lineCount = 0;
+
+    do
+    {
+        int init = file.read();
+        if(init != 0x96)
+            continue;
+        lineCount++;
+    } while (file = root.openNextFile());
+
+    M5.Lcd.clear();
+    M5.Lcd.setTextSize(2);
+    M5.Lcd.setCursor(80, 90);
+    M5.Lcd.print("Laduje linie");
+    M5.Lcd.progressBar(5, 120, 310, 20, 0);
+
+    LineDesc *lines = (LineDesc*)ps_malloc(sizeof(LineDesc) * lineCount);
+
+    root.rewindDirectory();
+    file = root.openNextFile();
+    uint8_t ix = 0;
+    do
+    {
+        int init = file.read();
+        if(init != 0x96)
+            continue;
+        msgpack_readString(file, lines[ix].name, 5);
+        msgpack_readString(file, lines[ix].from, 26);
+        msgpack_readString(file, lines[ix].to, 26);
+        lines[ix].stopCount = msgPack_readUint16(file);
+        strcpy((char *)lines[ix].fileName, file.name());
+        ix++;
+
+        M5.Lcd.fillRect(5, 120, 310, 20, 0);
+        M5.Lcd.progressBar(5, 120, 310, 20, (ix + 1) * 100 / lineCount);
+    } while (file = root.openNextFile());
+    log_d("%i", lines[0].stopCount);
+    return {lineCount, lines};
 }
