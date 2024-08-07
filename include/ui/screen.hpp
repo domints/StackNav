@@ -5,7 +5,9 @@ enum UiScreen
 {
     Undefined = 0,
     LineSelect = 1,
-    LineSummary = 2
+    LineSummary = 2,
+
+    GPSDetails = 255
 };
 
 #endif

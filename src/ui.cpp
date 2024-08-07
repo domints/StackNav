@@ -7,6 +7,7 @@
 
 #include "ui/screen.hpp"
 #include "ui/lineselect.hpp"
+#include "ui/gpsdetails.hpp"
 
 uint8_t *bottom_btn;
 UiScreen currentScreen;
@@ -40,11 +41,13 @@ UiScreen _ui_render(bool forceRender)
 {
     switch (currentScreen)
     {
-    case UiScreen::LineSelect:
-        return ui_lineselect_render(forceRender);
+        case UiScreen::LineSelect:
+            return ui_lineselect_render(forceRender);
+        case UiScreen::GPSDetails:
+            return ui_gpsdetails_render(forceRender);
 
-    default:
-        return UiScreen::LineSelect;
+        default:
+            return UiScreen::GPSDetails; // Make it lineselect
     }
 }
 

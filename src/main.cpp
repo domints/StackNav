@@ -8,7 +8,6 @@
 void setup()
 {
   M5.begin();
-
   storage_verify();
 
   gps_init();

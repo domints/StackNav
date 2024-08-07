@@ -1,5 +1,5 @@
 #ifndef __UI_LINESELECT_HPP__
-#define __UI_LINESELECT_HPP__
+#define __UI_LINESELECT_HPP__ ;
 
 #include "ui/screen.hpp"
 #include "data.hpp"

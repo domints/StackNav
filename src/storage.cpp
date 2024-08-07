@@ -21,19 +21,19 @@ void storage_list(fs::FS &fs, const char *dirname, uint8_t levels, bool skipHidd
     M5.Lcd.printf(" \n  ");
     M5.Lcd.printf(" \n  ");
 
-    Serial.printf("Listing directory: %s\n", dirname);
+    log_d("Listing directory: %s\n", dirname);
     M5.Lcd.printf("Listing directory: %s\n", dirname);
 
     File root = fs.open(dirname);
     if (!root)
     {
-        Serial.println("Failed to open directory");
+        log_e("Failed to open directory");
         M5.Lcd.println("Failed to open directory");
         return;
     }
     if (!root.isDirectory())
     {
-        Serial.println("Not a directory");
+        log_e("Not a directory");
         M5.Lcd.println("Not a directory");
         return;
     }

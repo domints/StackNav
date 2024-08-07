@@ -4,7 +4,7 @@
 
 TinyGPSPlus gps;
 
-static const uint32_t GPSBaud = 4800;
+static const uint32_t GPSBaud = 9600;
 static const int MAX_SATELLITES = 40;
 static const int PAGE_LENGTH = 40;
 
@@ -23,7 +23,7 @@ struct
 
 void gps_init()
 {
-    Serial2.begin(9600);
+    Serial2.begin(GPSBaud);
     //  Initialize all the uninitialized TinyGPSCustom objects
     for (int i = 0; i < 4; ++i)
     {
@@ -34,8 +34,45 @@ void gps_init()
 
 void gps_update()
 {
-    if (Serial2.available() > 0)
+    bool newData = false;
+    while (Serial2.available() > 0)
     {
-        gps.encode(Serial2.read());
+        uint8_t c = Serial2.read();
+        Serial.write(c);
+        if (gps.encode(c))
+        {
+            newData = true;
+            anyChanges = true;
+        }
     }
+}
+
+TinyGPSLocation gps_getLocation()
+{
+    return gps.location;
+}
+
+TinyGPSInteger gps_getSatellites()
+{
+    return gps.satellites;
+}
+
+TinyGPSAltitude gps_getAltitude()
+{
+    return gps.altitude;
+}
+
+TinyGPSCourse gps_getCourse()
+{
+    return gps.course;
+}
+
+TinyGPSDate gps_getDate()
+{
+    return gps.date;
+}
+
+TinyGPSTime gps_getTime()
+{
+    return gps.time;
 }
